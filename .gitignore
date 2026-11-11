@@ -1,0 +1,57 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Uncomment to ignore VS Code settings.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/build/
+/android/.gradle/
+
+# Telegram API credentials. Copy app_config.example.dart and fill it in.
+/lib/core/config/app_config.dart
+
+# Release signing. Back these up: losing either blocks signed updates.
+android/key.properties
+*.jks
+*.keystore
+
+# The support checkout's local secrets and Wrangler's cache.
+/support/.dev.vars
+/support/.wrangler/

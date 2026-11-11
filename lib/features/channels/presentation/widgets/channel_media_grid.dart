@@ -1,0 +1,164 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:gramx/core/widgets/minithumbnail.dart';
+import 'package:gramx/app/theme/app_colors.dart';
+import 'package:gramx/core/widgets/media_path.dart';
+import 'package:gramx/app/theme/app_spacing.dart';
+import 'package:gramx/core/l10n/app_strings.dart';
+import 'package:gramx/core/time/time_utils.dart';
+import 'package:gramx/features/feed/domain/media_item.dart';
+import 'package:gramx/features/feed/domain/post.dart';
+import 'package:gramx/infrastructure/telegram/file_download_provider.dart';
+
+/// The Media tab: a grid of the channel's photos and videos. A tap opens the
+/// tile's post, so its caption is shown too.
+class ChannelMediaGrid extends StatelessWidget {
+  final List<Post> posts;
+
+  const ChannelMediaGrid({super.key, required this.posts});
+
+  /// Flattens posts to photo and video tiles, keeping each tile's post.
+  static List<({Post post, MediaItem item})> tilesFor(List<Post> posts) {
+    return [
+      for (final post in posts)
+        for (final item in post.media)
+          if (item.type == MediaType.photo ||
+              item.type == MediaType.video ||
+              item.type == MediaType.gif)
+            (post: post, item: item),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tiles = tilesFor(posts);
+
+    return SliverPadding(
+      padding: const EdgeInsets.all(AppSpacing.mediaGap),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisSpacing: AppSpacing.mediaGap,
+          crossAxisSpacing: AppSpacing.mediaGap,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => _MediaTile(tile: tiles[index]),
+          childCount: tiles.length,
+        ),
+      ),
+    );
+  }
+}
+
+class _MediaTile extends ConsumerWidget {
+  final ({Post post, MediaItem item}) tile;
+
+  const _MediaTile({required this.tile});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final item = tile.item;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final placeholder = isDark
+        ? AppColors.darkSurfaceVariant
+        : Colors.grey.shade200;
+
+    // The thumbnail suits this tile size; the minithumbnail shows first.
+    final path = resolveMediaPath(
+      ref,
+      fileId: item.thumbnailFileId ?? item.fileId,
+      rawPath: item.thumbnailUrl,
+    );
+
+    final exists = path != null && path.isNotEmpty
+        ? ref.watch(fileExistsProvider(path)).value ?? false
+        : false;
+
+    final preview = Minithumbnail.provider(item.minithumbnail);
+    final Widget underlay = preview == null
+        ? ColoredBox(color: placeholder)
+        : Image(image: preview, fit: BoxFit.cover, gaplessPlayback: true);
+
+    Widget image;
+    if (exists) {
+      image = Stack(
+        fit: StackFit.expand,
+        children: [
+          underlay,
+          Image.file(
+            File(path),
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            frameBuilder: fadeInFrame,
+            errorBuilder: (_, _, _) => ColoredBox(color: placeholder),
+          ),
+        ],
+      );
+    } else {
+      image = underlay;
+    }
+
+    final isVideo = item.type == MediaType.video || item.type == MediaType.gif;
+
+    return Semantics(
+      button: true,
+      label: isVideo
+          ? AppStrings.a11yChannelVideoTile
+          : AppStrings.a11yChannelPhotoTile,
+      child: GestureDetector(
+        onTap: () => context.push('/post/${tile.post.id}'),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            image,
+            if (isVideo)
+              Positioned(
+                right: 4,
+                bottom: 4,
+                child: _VideoBadge(duration: item.duration),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Duration on a scrim, so it stays readable over a bright frame.
+class _VideoBadge extends StatelessWidget {
+  final int duration;
+
+  const _VideoBadge({required this.duration});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.play_arrow_rounded, size: 12, color: Colors.white),
+          if (duration > 0) ...[
+            const SizedBox(width: 2),
+            Text(
+              TimeUtils.formatDuration(duration),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

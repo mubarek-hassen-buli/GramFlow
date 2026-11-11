@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>gramX · Your Telegram channels, as one timeline</title>
+  <meta name="description" content="gramX is a free, open-source app for Android and iPhone that shows every Telegram channel you follow in one feed, newest first. No ads, no tracking, no gramX servers.">
+  <link rel="canonical" href="https://daveragos.github.io/gramx/">
+  <meta name="theme-color" content="#000000">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="gramX">
+  <meta property="og:title" content="gramX: your Telegram channels, as one timeline">
+  <meta property="og:description" content="Every channel you follow in one feed, newest first. Free and open source, for Android and iPhone.">
+  <meta property="og:url" content="https://daveragos.github.io/gramx/">
+  <meta property="og:image" content="https://daveragos.github.io/gramx/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="gramX: your Telegram channels, as one timeline. A phone showing the gramX home feed.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="gramX: your Telegram channels, as one timeline">
+  <meta name="twitter:description" content="Every channel you follow in one feed, newest first. Free and open source, for Android and iPhone.">
+  <meta name="twitter:image" content="https://daveragos.github.io/gramx/assets/og.png">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/brand/icon-on-light.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preload" href="assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+
+  <script>
+    // Theme and platform, set before the first paint.
+    (function () {
+      var d = document.documentElement, t = null;
+      try { t = localStorage.getItem('gramx-theme'); } catch (e) {}
+      if (t !== 'light' && t !== 'dim' && t !== 'dark') {
+        t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      }
+      d.setAttribute('data-theme', t);
+      var ua = navigator.userAgent;
+      var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      d.setAttribute('data-platform', /Android/i.test(ua) ? 'android' : ios ? 'ios' : 'desktop');
+    })();
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "gramX",
+    "description": "An app for Android and iPhone that shows the Telegram channels you follow as one timeline, newest first.",
+    "applicationCategory": "SocialNetworkingApplication",
+    "operatingSystem": "Android 7.0 or newer, iOS 15 or newer",
+    "url": "https://daveragos.github.io/gramx/",
+    "downloadUrl": "https://github.com/daveragos/gramx/releases/latest",
+    "screenshot": "https://daveragos.github.io/gramx/assets/shots/feed.webp",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "name": "Dawit (RaGoose)" }
+  }
+  </script>
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav" data-nav>
+    <div class="container nav-inner">
+      <a class="brand" href="./" aria-label="gramX home">
+        <img class="on-dark" src="assets/brand/glyph-on-dark.png" alt="" width="24" height="26">
+        <img class="on-light" src="assets/brand/glyph-on-light.png" alt="" width="24" height="26">
+        <span>gramX</span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#features">Features</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#install">Install</a>
+        <a href="iphone.html">iPhone</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn theme-toggle" type="button" data-theme-cycle aria-label="Change theme">
+          <svg class="i t-light" aria-hidden="true"><use href="assets/icons.svg#i-sun"/></svg>
+          <svg class="i t-dim" aria-hidden="true"><use href="assets/icons.svg#i-dim"/></svg>
+          <svg class="i t-dark" aria-hidden="true"><use href="assets/icons.svg#i-moon"/></svg>
+        </button>
+        <a class="btn btn-primary btn-sm" data-download data-dl="arm64" href="https://github.com/daveragos/gramx/releases/download/v1.1.0/gramx-1.1.0-arm64-v8a.apk">Download</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <h1>Your Telegram channels, as one timeline.</h1>
+          <p class="lead">gramX puts every channel you follow into a single feed, newest first. Scroll, react and comment the way you do everywhere else, instead of opening channels one by one.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-lg cta-android" data-download data-dl="arm64" href="https://github.com/daveragos/gramx/releases/download/v1.1.0/gramx-1.1.0-arm64-v8a.apk">
+              <svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-download"/></svg>
+              Download for Android
+            </a>
+            <a class="btn btn-ghost btn-lg cta-iphone" href="iphone.html">
+              <svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-phone"/></svg>
+              Install on iPhone
+            </a>
+          </div>
+          <p class="cta-meta">Free and open source · Android&nbsp;7.0 or&nbsp;newer · iOS&nbsp;15 or&nbsp;newer · <a data-release-link href="https://github.com/daveragos/gramx/releases/tag/v1.1.0">Version <span data-version>1.1.0</span></a></p>
+          <p class="platform-note">
+            <svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-phone"/></svg>
+            <span>On an iPhone? gramX isn't in the App Store, but you can still install it. <a href="iphone.html">Here's how</a>.</span>
+          </p>
+          <div class="qr-card">
+            <div class="qr" data-qr role="img" aria-label="QR code that opens this page"></div>
+            <p><strong>On a computer?</strong><br>Scan with your phone<br>to get gramX there.</p>
+          </div>
+        </div>
+
+        <figure class="hero-visual">
+          <div class="phone">
+            <div class="screen">
+              <div class="shot-status" aria-hidden="true">
+                <span>9:41</span>
+                <i class="camera"></i>
+                <span class="sb-icons">
+                  <svg viewBox="0 0 18 12"><path d="M1 8h2.5v4H1zM5.5 5.5H8V12H5.5zM10 3h2.5v9H10zM14.5 0H17v12h-2.5z"/></svg>
+                  <svg viewBox="0 0 16 12"><path d="M8 12 0 3.6A11.6 11.6 0 0 1 8 0a11.6 11.6 0 0 1 8 3.6z"/></svg>
+                  <svg viewBox="0 0 25 12"><rect x=".75" y=".75" width="20.5" height="10.5" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="2.5" width="14" height="7" rx="1.5"/><rect x="22.5" y="4" width="2" height="4" rx="1"/></svg>
+                </span>
+              </div>
+              <img class="shot" src="assets/shots/feed.webp" width="720" height="1483" alt="The gramX home feed. Telegram folders run across the top as tabs, a button says 15 new posts, and posts from different channels follow one another in a single timeline.">
+            </div>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Trust strip -->
+    <div class="trust">
+      <ul class="container">
+        <li><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-shield"/></svg><span><strong>No ads.</strong> No tracking.</span></li>
+        <li><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-cloud-off"/></svg><span><strong>No gramX servers.</strong></span></li>
+        <li><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-eye"/></svg><span><strong>Try it</strong> without an account</span></li>
+        <li><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-code"/></svg><span><strong>Open source</strong> on GitHub</span></li>
+      </ul>
+    </div>
+
+    <!-- Before / after -->
+    <section class="section" id="how">
+      <div class="container">
+        <div class="section-head center reveal">
+          <h2 class="h2">Channels are for reading. So read them like a feed.</h2>
+          <p class="lead">Telegram lists every channel as a separate chat, each with its own pile of unread posts. gramX lays them out as one timeline, so catching up is a single scroll.</p>
+        </div>
+
+        <div class="compare">
+          <div class="card reveal" aria-label="Channels as separate chats">
+            <div class="compare-label"><b>Channels as chats</b><span>One at a time</span></div>
+            <div class="chatrow"><i class="av" style="--c:#b8336a">K</i><div class="chatrow-main"><b>Kitchen Notes</b><span>One pot, twenty minutes. Which recipe should…</span></div><span class="badge">2,031</span></div>
+            <div class="chatrow"><i class="av" style="--c:#2f6fae">W</i><div class="chatrow-main"><b>World Brief</b><span>Good morning. Five stories worth your time…</span></div><span class="badge">1,284</span></div>
+            <div class="chatrow"><i class="av" style="--c:#6a4fc4">B</i><div class="chatrow-main"><b>Byte Sized</b><span>A phone battery that charges fully in five…</span></div><span class="badge">312</span></div>
+            <div class="chatrow"><i class="av" style="--c:#2e7d32">M</i><div class="chatrow-main"><b>Matchday</b><span>FULL TIME. Three goals in the last twenty…</span></div><span class="badge">97</span></div>
+            <div class="chatrow"><i class="av" style="--c:#a8530a">L</i><div class="chatrow-main"><b>Lens &amp; Light</b><span>Sunrise over the Simien Mountains, sent in…</span></div><span class="badge">46</span></div>
+          </div>
+
+          <span class="compare-arrow" aria-hidden="true"><svg class="i"><use href="assets/icons.svg#i-arrow"/></svg></span>
+
+          <div class="card minifeed reveal" aria-label="The same channels as one timeline">
+            <div class="compare-label"><b>gramX</b><span>Everything, newest first</span></div>
+            <article class="post">
+              <i class="av" style="--c:#2f6fae">W</i>
+              <div class="post-main">
+                <div class="post-head"><b>World Brief</b><svg class="i vb" aria-hidden="true"><use href="assets/icons.svg#i-verified"/></svg><span class="h">@worldbrief</span><span class="t">· 2m</span><i class="unread"></i></div>
+                <p class="ptext">Good morning. Five stories worth your time today, each one under a minute to read. ☕️</p>
+              </div>
+            </article>
+            <article class="post">
+              <i class="av" style="--c:#6a4fc4">B</i>
+              <div class="post-main">
+                <div class="post-head"><b>Byte Sized</b><span class="h">@bytesized</span><span class="t">· 18m</span><i class="unread"></i></div>
+                <p class="ptext">A phone battery that charges fully in five minutes just passed its first safety tests. 🔋</p>
+              </div>
+            </article>
+            <article class="post">
+              <i class="av" style="--c:#2e7d32">M</i>
+              <div class="post-main">
+                <div class="post-head"><b>Matchday</b><svg class="i vb" aria-hidden="true"><use href="assets/icons.svg#i-verified"/></svg><span class="h">@matchday</span><span class="t">· 41m</span></div>
+                <p class="ptext">FULL TIME. Three goals in the last twenty minutes. What a comeback. ⚽️</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head reveal">
+          <h2 class="h2">Everything you do on Telegram, laid out to read.</h2>
+          <p class="lead">gramX is a full Telegram app, not just a reader. Your channels, your messages and the channels you run, all in one place.</p>
+        </div>
+
+        <div class="bento">
+          <article class="card feature b-wide reveal">
+            <h3>One feed, with your folders as tabs</h3>
+            <p>Every channel you follow, newest first. The folders you already made in Telegram show up as tabs, so news, work and fun each get their own feed.</p>
+            <div class="feature-visual" aria-hidden="true">
+              <div class="folder-tabs"><span class="on">All</span><span>News</span><span>Work</span><span>Tech</span><span>Sports</span><span>Music</span><span>Deals</span></div>
+            </div>
+          </article>
+
+          <article class="card feature b-third reveal">
+            <h3>Read once</h3>
+            <p>Posts you've read stay out of the way, and read status stays in step with your other Telegram apps.</p>
+            <p class="feature-visual caught" aria-hidden="true"><svg class="i"><use href="assets/icons.svg#i-check-circle"/></svg><span><b>You're all caught up</b>New posts will appear here.</span></p>
+          </article>
+
+          <article class="card feature b-shot reveal">
+            <h3>Channel pages and stats</h3>
+            <p>Each channel gets a page with its posts, media, files and links, plus statistics for the channels you run.</p>
+            <img class="feature-shot" src="assets/shots/channel.webp" width="720" height="947" loading="lazy" alt="A channel page in gramX: cover image, channel photo, name, description with links, 1.1K subscribers and a pinned post.">
+          </article>
+
+          <article class="card feature b-half reveal">
+            <h3>Messages, too</h3>
+            <p>Your direct messages and groups, with replies, forwards, pins, search and scheduled messages.</p>
+            <div class="feature-visual mini-list" aria-hidden="true">
+              <div class="mini-row"><i class="av" style="--c:#a8530a">S</i><div class="grow"><b>Sara</b><span>See you at 7? I'll bring the tickets 🎟️</span></div><span class="unread-badge">2</span></div>
+              <div class="mini-row"><i class="av" style="--c:#2f6fae">F</i><div class="grow"><b>Family</b><span>Mom: Photos from Sunday are up!</span></div><span class="unread-badge">5</span></div>
+            </div>
+          </article>
+
+          <article class="card feature b-half reveal">
+            <h3>Activity</h3>
+            <p>Mentions, replies and reactions in one place, with notifications for what Telegram already notifies you about.</p>
+            <div class="feature-visual mini-list" aria-hidden="true">
+              <div class="mini-row"><span class="kind"><i class="av" style="--c:#2e7d32">D</i><svg class="i" style="color:var(--like)"><use href="assets/icons.svg#i-heart-fill"/></svg></span><div class="grow"><b>Daniel</b> reacted 🔥<span>to your comment in Matchday</span></div></div>
+              <div class="mini-row"><span class="kind"><i class="av" style="--c:#6a4fc4">H</i><svg class="i" style="color:var(--accent)"><use href="assets/icons.svg#i-reply"/></svg></span><div class="grow"><b>Hana</b> replied<span>“Totally agree, the second half was wild”</span></div></div>
+            </div>
+          </article>
+
+          <article class="card feature b-half reveal">
+            <h3>Post to the channels you run</h3>
+            <p>Write to your own channels straight from gramX, with everything a post can hold.</p>
+            <div class="feature-visual compose-tools" aria-hidden="true">
+              <span>Text</span><span>Photos</span><span>Videos</span><span>Files</span><span>Polls</span><span>Stickers</span><span>Voice</span><span>Location</span>
+            </div>
+          </article>
+
+          <article class="card feature b-half reveal">
+            <h3>Links, sharing and the rest</h3>
+            <p>Telegram links open right inside the app, and anything you share to gramX from another app opens ready to post. Bookmarks, search and explore are there too.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Themes -->
+    <section class="section" id="themes">
+      <div class="container">
+        <div class="section-head center reveal">
+          <h2 class="h2">Light, Dim, or Lights out.</h2>
+          <p class="lead">The same three themes as in the app. Pick one and this page switches too.</p>
+        </div>
+        <div class="themes reveal" role="radiogroup" aria-label="Theme">
+          <button class="theme-tile" type="button" role="radio" aria-checked="false" data-theme-pick="light"><span class="radio" aria-hidden="true"></span>Light</button>
+          <button class="theme-tile" type="button" role="radio" aria-checked="false" data-theme-pick="dim"><span class="radio" aria-hidden="true"></span>Dim</button>
+          <button class="theme-tile" type="button" role="radio" aria-checked="false" data-theme-pick="dark"><span class="radio" aria-hidden="true"></span>Lights out</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy -->
+    <section class="section" id="privacy">
+      <div class="container">
+        <div class="section-head reveal">
+          <h2 class="h2">There is no gramX server.</h2>
+          <p class="lead">gramX connects straight from your phone to Telegram, using Telegram's own client library. Nothing you read, write or tap is sent to the developer or to anyone else.</p>
+        </div>
+
+        <div class="points">
+          <div class="point reveal">
+            <h3><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-cloud-off"/></svg>Talks only to Telegram</h3>
+            <p>No backend and no middleman. Your sign-in and your messages go from your phone to Telegram, and nowhere else.</p>
+          </div>
+          <div class="point reveal">
+            <h3><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-lock"/></svg>Stays on your phone</h3>
+            <p>What gramX keeps is stored on your phone, in a database encrypted with a key from your phone's keystore. Logging out clears it.</p>
+          </div>
+          <div class="point reveal">
+            <h3><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-shield"/></svg>No ads, no tracking</h3>
+            <p>No analytics, no advertising, and no crash reporter phoning home. There's nothing to sell, and nobody to sell it to.</p>
+          </div>
+        </div>
+
+        <div class="guest reveal">
+          <div>
+            <h3>Not ready to sign in? Just read.</h3>
+            <p>Add any public channel and read it without a Telegram account. Guest mode only reads, so nothing is ever sent on your behalf. Sign in whenever you want to react, comment and sync.</p>
+            <p><a href="privacy.html">Read the privacy policy</a></p>
+          </div>
+          <div aria-hidden="true">
+            <div class="guest-banner">
+              <svg class="i"><use href="assets/icons.svg#i-eye"/></svg>
+              <div><b>You are browsing as a guest</b><span>Sign in to react, comment, bookmark and sync what you have read.</span></div>
+              <em>Sign in</em>
+            </div>
+            <article class="post">
+              <i class="av" style="--c:#a8530a">L</i>
+              <div class="post-main">
+                <div class="post-head"><b>Lens &amp; Light</b><span class="h">@lensandlight</span><span class="t">· 1h</span></div>
+                <p class="ptext">Sunrise over the Simien Mountains, sent in by a reader this morning. <span class="tag">#PhotoOfTheDay</span></p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section class="section" id="install">
+      <div class="container">
+        <div class="section-head reveal">
+          <h2 class="h2">Up and running in a minute.</h2>
+          <p class="lead">gramX installs straight from this page rather than from an app store. It takes about a minute, and you only do it once.</p>
+        </div>
+
+        <ol class="steps">
+          <li class="step reveal">
+            <div class="step-visual" aria-hidden="true">
+              <div class="file-chip">
+                <img src="assets/brand/icon-on-light.png" alt="">
+                <div><b data-filename="arm64">gramx-1.1.0-arm64-v8a.apk</b><span data-size="arm64">53 MB</span><div class="progress"><i></i></div></div>
+                <svg class="i done"><use href="assets/icons.svg#i-check-circle"/></svg>
+              </div>
+            </div>
+            <h3><span class="step-num">1</span>Download gramX</h3>
+            <p>Tap the button on your Android phone. It's one file, and the right one for almost every phone from the last several years.</p>
+            <a class="btn btn-primary" data-download data-dl="arm64" href="https://github.com/daveragos/gramx/releases/download/v1.1.0/gramx-1.1.0-arm64-v8a.apk">
+              <svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-download"/></svg>
+              Download for Android
+            </a>
+            <details class="variants">
+              <summary>Other versions <svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+              <ul>
+                <li><a data-download data-dl="v7a" href="https://github.com/daveragos/gramx/releases/download/v1.1.0/gramx-1.1.0-armeabi-v7a.apk">32-bit (armeabi-v7a)</a>, <span data-size="v7a">45 MB</span>. For older phones.</li>
+                <li><a data-download data-dl="x86" href="https://github.com/daveragos/gramx/releases/download/v1.1.0/gramx-1.1.0-x86_64.apk">x86_64</a>, <span data-size="x86">56 MB</span>. For emulators, some tablets and Chromebooks.</li>
+                <li><a data-dl="sums" href="https://github.com/daveragos/gramx/releases/download/v1.1.0/SHA256SUMS.txt">SHA256SUMS.txt</a>, to check a download.</li>
+                <li><a data-release-link href="https://github.com/daveragos/gramx/releases/tag/v1.1.0">Release notes</a> and <a href="https://github.com/daveragos/gramx/releases">earlier versions</a>.</li>
+              </ul>
+            </details>
+          </li>
+
+          <li class="step reveal">
+            <div class="step-visual" aria-hidden="true">
+              <div class="sys-dialog">
+                <img src="assets/brand/icon-on-light.png" alt="">
+                <b>gramX</b>
+                <p>Do you want to install this app?</p>
+                <div class="row"><span>Cancel</span><span class="go">Install</span></div>
+              </div>
+            </div>
+            <h3><span class="step-num">2</span>Open it and tap Install</h3>
+            <p>Open the file from your notifications or Downloads. The first time, Android asks you to allow installs from your browser or file manager. Allow it, go back, and tap Install.</p>
+          </li>
+
+          <li class="step reveal">
+            <div class="step-visual" aria-hidden="true">
+              <div class="auth-mini">
+                <img class="on-dark" src="assets/brand/icon-on-dark.png" alt="">
+                <img class="on-light" src="assets/brand/icon-on-light.png" alt="">
+                <b>Welcome to gramX</b>
+                <small>Your Telegram channels, as one timeline.</small>
+                <div class="a-btn a-fill"><svg class="i"><use href="assets/icons.svg#i-phone"/></svg>Continue with Phone Number</div>
+                <div class="a-btn a-line"><svg class="i"><use href="assets/icons.svg#i-qr"/></svg>Log in via QR Code</div>
+                <div class="a-btn a-text">Browse without an account</div>
+              </div>
+            </div>
+            <h3><span class="step-num">3</span>Sign in, or just look around</h3>
+            <p>Sign in with your phone number or a QR code from Telegram on another device. Or skip it and read public channels as a guest.</p>
+          </li>
+        </ol>
+
+        <p class="update-note reveal"><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-download"/></svg><span><b>Updating later?</b> Download the new version from this page and install it over the old one. You stay signed in, and your settings stay as they are.</span></p>
+        <p class="update-note reveal"><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-smartphone"/></svg><span><b>On an iPhone?</b> gramX installs differently there, with a free helper app. <a href="iphone.html">Follow the iPhone guide</a>.</span></p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head center reveal">
+          <h2 class="h2">Questions, answered.</h2>
+        </div>
+        <div class="faq reveal">
+          <details>
+            <summary>Is gramX free?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>Yes. There are no ads, no subscriptions and no in-app purchases. gramX is open source, and if it's useful to you, you can <a href="support.html">support its development</a>.</p></div>
+          </details>
+          <details>
+            <summary>Is gramX made by Telegram?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>No. gramX is an independent app made by one developer. It is not made by, affiliated with, or endorsed by Telegram.</p><p>It talks to Telegram through TDLib, Telegram's own open-source client library, so your account works in gramX the way it does in any other Telegram app.</p></div>
+          </details>
+          <details>
+            <summary>Is it safe to sign in?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>Your sign-in goes from your phone straight to Telegram. gramX has no server, so there is nowhere else for it to go.</p><p>Like any Telegram app, gramX appears in Telegram under Settings → Devices, where you can end its session at any time. And all of its code is <a href="https://github.com/daveragos/gramx">public</a>, so anyone can check what it does.</p></div>
+          </details>
+          <details>
+            <summary>Why does my phone warn me about the download?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>Android shows the same warning for every app installed from outside an app store. It's expected, and you only see it the first time.</p><p>Every gramX release is built from the public source code and published with <a data-dl="sums" href="https://github.com/daveragos/gramx/releases/download/v1.1.0/SHA256SUMS.txt">checksums</a>, so you can confirm the file you downloaded is the one that was released.</p></div>
+          </details>
+          <details>
+            <summary>Do I need a Telegram account?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>Not to try it. Guest mode reads public channels without signing in. To see the channels you follow, react, comment and send messages, sign in with your Telegram account.</p></div>
+          </details>
+          <details>
+            <summary>Will reading in gramX mark posts as read on my other devices?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>Yes. gramX is a real Telegram app, so posts you read here are marked read everywhere you use Telegram, the same as reading them in Telegram itself.</p></div>
+          </details>
+          <details>
+            <summary>Is there an iPhone version?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>Yes, for iOS 15 or newer, though not in the App Store. You install it with a free helper app such as Sideloadly, and refresh it once a week. The <a href="iphone.html">iPhone guide</a> walks you through it.</p></div>
+          </details>
+          <details>
+            <summary>Which file should I download?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>If you're not sure, use the main Download button. It gets the arm64-v8a version, which is right for almost every phone from the last several years.</p><p>Older 32-bit phones need armeabi-v7a, and emulators and some Chromebooks need x86_64. Both are under <a href="#install">Other versions</a>.</p></div>
+          </details>
+          <details>
+            <summary>How do I update?<svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-expand"/></svg></summary>
+            <div class="answer"><p>Download the new version from this page and install it over the old one. You stay signed in, and your settings stay as they are.</p></div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Support -->
+    <section class="section" id="support">
+      <div class="container">
+        <div class="section-head reveal">
+          <h2 class="h2">Made by one person, in the open.</h2>
+          <p class="lead">gramX is free and open source under the Apache 2.0 license. If you'd like to help it grow, here's how.</p>
+        </div>
+        <div class="points">
+          <div class="point reveal">
+            <h3>Support the work</h3>
+            <p>gramX has no ads and sells nothing. Support from the people who use it keeps it going.</p>
+            <a class="btn btn-primary" href="support.html">Support RaGoose</a>
+          </div>
+          <div class="point reveal">
+            <h3>Report, suggest, contribute</h3>
+            <p>Found a bug or have an idea? Open an issue. Every line of gramX is on GitHub, and pull requests are welcome.</p>
+            <div class="share-row">
+              <a class="btn btn-ghost" href="https://github.com/daveragos/gramx"><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-github"/></svg>View on GitHub</a>
+              <a class="btn btn-ghost" href="https://github.com/daveragos/gramx/issues"><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-bug"/></svg>Report a bug</a>
+            </div>
+          </div>
+          <div class="point reveal">
+            <h3>Tell a friend</h3>
+            <p>Know someone buried under a hundred unread channels? Send them this page.</p>
+            <div class="share-row">
+              <a class="btn btn-ghost" data-share-x href="https://x.com/intent/post?text=gramX%20turns%20the%20Telegram%20channels%20you%20follow%20into%20one%20timeline.%20Free%20for%20Android%3A&amp;url=https%3A%2F%2Fdaveragos.github.io%2Fgramx%2F" target="_blank" rel="noopener"><svg class="i i-x" aria-hidden="true"><use href="assets/icons.svg#i-x"/></svg>Share on X</a>
+              <button class="btn btn-ghost" type="button" data-copy-link><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-copy"/></svg><span>Copy link</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final call -->
+    <section class="section final">
+      <div class="container reveal">
+        <img class="mark" src="assets/brand/mark.webp" alt="" width="92" height="143" loading="lazy">
+        <h2 class="h2">Your channels, in one place.</h2>
+        <p class="lead">Free for Android. Takes a minute to set up, and you can try it without an account.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary btn-lg" data-download data-dl="arm64" href="https://github.com/daveragos/gramx/releases/download/v1.1.0/gramx-1.1.0-arm64-v8a.apk">
+            <svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-download"/></svg>
+            Download for Android
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <a class="brand" href="./" aria-label="gramX home">
+          <img class="on-dark" src="assets/brand/glyph-on-dark.png" alt="" width="24" height="26">
+          <img class="on-light" src="assets/brand/glyph-on-light.png" alt="" width="24" height="26">
+          <span>gramX</span>
+        </a>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="#install">Download</a>
+          <a href="iphone.html">Install on iPhone</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
+          <a href="https://github.com/daveragos/gramx">Source code</a>
+          <a href="https://github.com/daveragos/gramx/releases">Releases</a>
+          <a href="https://github.com/daveragos/gramx/issues">Report an issue</a>
+        </nav>
+      </div>
+      <p class="fine">gramX is an independent app. It is not made by, affiliated with, or endorsed by Telegram. © <span data-year>2026</span> Dawit (RaGoose). The app is open source under the Apache License 2.0; the gramX name and logo are not.</p>
+    </div>
+  </footer>
+
+  <dialog class="sheet" id="download-sheet" aria-labelledby="sheet-title">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <div>
+        <h2 id="sheet-title" data-sheet-title>Your download has started</h2>
+        <p class="sheet-file"><span data-sheet-file>gramx-1.1.0-arm64-v8a.apk</span> · <span data-sheet-size>53 MB</span></p>
+      </div>
+      <button class="icon-btn" type="button" data-close aria-label="Close"><svg class="i" aria-hidden="true"><use href="assets/icons.svg#i-close"/></svg></button>
+    </div>
+    <div class="sheet-ios">
+      <p>That download is for Android phones. On iPhone, gramX installs with a free helper app instead, and the guide shows you how.</p>
+      <a class="btn btn-primary" href="iphone.html">Install on iPhone</a>
+    </div>
+    <div class="sheet-qr">
+      <div class="qr" data-qr role="img" aria-label="QR code that opens this page"></div>
+      <p><b>On a computer?</b> To install gramX on your phone, scan this code with it and download there.</p>
+    </div>
+    <ol>
+      <li><p><b>Open the file</b> <span>from your notifications or your Downloads folder. If your browser asks whether to keep it, keep it.</span></p></li>
+      <li><p><b>Allow installs if asked.</b> <span>Android asks once to let your browser or file manager install apps. Allow it, go back, and tap Install.</span></p></li>
+      <li><p><b>Open gramX</b> <span>and sign in with Telegram, or browse public channels as a guest.</span></p></li>
+    </ol>
+    <button class="btn btn-primary btn-lg" type="button" data-close>Got it</button>
+    <a class="again" data-sheet-again href="https://github.com/daveragos/gramx/releases/download/v1.1.0/gramx-1.1.0-arm64-v8a.apk">Download didn't start? Try again</a>
+  </dialog>
+</body>
+</html>

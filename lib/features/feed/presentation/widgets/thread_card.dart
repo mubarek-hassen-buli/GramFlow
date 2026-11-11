@@ -1,0 +1,160 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:gramx/app/theme/app_colors.dart';
+import 'package:gramx/app/theme/app_spacing.dart';
+import 'package:gramx/app/theme/app_typography.dart';
+import 'package:gramx/core/l10n/app_strings.dart';
+import 'package:gramx/core/navigation/navigation_utils.dart';
+import 'package:gramx/features/feed/domain/feed_thread.dart';
+import 'package:gramx/features/feed/domain/post.dart';
+import 'package:gramx/features/feed/presentation/feed_focus_controller.dart';
+import 'package:gramx/features/feed/presentation/widgets/post_card.dart';
+import 'package:gramx/features/reader/data/reader_article_builder.dart';
+import 'package:gramx/features/reader/presentation/widgets/reader_badge.dart';
+
+/// One feed entry: a post plus its channel's follow-ups in reply. Collapsed
+/// by default so a burst takes one slot; expanding shows the earlier posts
+/// inline and indented.
+class ThreadCard extends ConsumerStatefulWidget {
+  final FeedThread thread;
+
+  final void Function(Post post) onOpenPost;
+  final void Function(Post post) onOpenChannel;
+
+  const ThreadCard({
+    super.key,
+    required this.thread,
+    required this.onOpenPost,
+    required this.onOpenChannel,
+  });
+
+  @override
+  ConsumerState<ThreadCard> createState() => _ThreadCardState();
+}
+
+class _ThreadCardState extends ConsumerState<ThreadCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final thread = widget.thread;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final secondary = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
+
+    Widget cardFor(Post post, {bool showDivider = true}) =>
+        PostVisibilityReporter(
+          postId: post.id,
+          child: PostCard(
+            post: post,
+            showDivider: showDivider,
+            onTap: () => widget.onOpenPost(post),
+            onChannelTap: () => widget.onOpenChannel(post),
+          ),
+        );
+
+    // Earlier posts are indented as context for the newest.
+    Widget contextCardFor(Post post) => Padding(
+      padding: const EdgeInsets.only(left: AppSpacing.xl),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(color: secondary.withValues(alpha: 0.3)),
+          ),
+        ),
+        child: cardFor(post, showDivider: false),
+      ),
+    );
+
+    // See FeedThread.hasEarlierToBeShown.
+    if (!thread.hasEarlierToBeShown) return cardFor(thread.latest);
+
+    // The toggle sits above the divider so the thread reads as one block.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        cardFor(thread.latest, showDivider: false),
+        if (_expanded)
+          // Newest first, like the feed.
+          for (final post in thread.earlier.reversed) contextCardFor(post),
+        _ThreadToggle(
+          count: thread.earlier.length,
+          expanded: _expanded,
+          color: secondary,
+          onTap: () => setState(() => _expanded = !_expanded),
+          trailing: ReaderBadge(
+            estimatedMinutes: ReaderArticleBuilder.calculateReadMinutes(
+              thread.allPosts.fold(
+                0,
+                (sum, p) => sum + ReaderArticleBuilder.countWords(p.text),
+              ),
+            ),
+            isThread: true,
+            onTap: () => NavigationUtils.openReader(context, thread: thread),
+          ),
+        ),
+        Divider(color: theme.dividerTheme.color, height: 0.5, thickness: 0.5),
+      ],
+    );
+  }
+}
+
+class _ThreadToggle extends StatelessWidget {
+  final int count;
+  final bool expanded;
+  final Color color;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  const _ThreadToggle({
+    required this.count,
+    required this.expanded,
+    required this.color,
+    required this.onTap,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final label = expanded
+        ? AppStrings.threadHide
+        : AppStrings.threadShow(count);
+
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xxxl + AppSpacing.md,
+            0,
+            AppSpacing.postPadding,
+            AppSpacing.md,
+          ),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: AppTypography.actionCount(
+                  color: AppColors.accent,
+                ).copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                expanded ? Icons.expand_less : Icons.expand_more,
+                size: 16,
+                color: AppColors.accent,
+              ),
+              if (trailing != null) ...[const Spacer(), trailing!],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

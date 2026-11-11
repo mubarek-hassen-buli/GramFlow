@@ -1,0 +1,98 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gramx/app/theme/app_colors.dart';
+import 'package:gramx/core/widgets/media_path.dart';
+import 'package:gramx/app/theme/app_spacing.dart';
+import 'package:gramx/app/theme/app_typography.dart';
+import 'package:gramx/infrastructure/telegram/file_download_provider.dart';
+
+class ChannelAvatar extends ConsumerWidget {
+  final String title;
+  final String? avatarPath;
+  final int? avatarFileId;
+  final String? avatarColorHex;
+  final double radius;
+  final VoidCallback? onTap;
+
+  const ChannelAvatar({
+    super.key,
+    required this.title,
+    this.avatarPath,
+    this.avatarFileId,
+    this.avatarColorHex,
+    this.radius = AppSpacing.avatarSize / 2,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    Widget avatar;
+
+    // A TDLib file id or a guest-mode URL, resolved to a path on disk.
+    final resolvedPath = resolveMediaPath(
+      ref,
+      fileId: avatarFileId,
+      rawPath: avatarPath,
+    );
+
+    if (resolvedPath != null && resolvedPath.isNotEmpty) {
+      final fileExists = ref.watch(fileExistsProvider(resolvedPath));
+      avatar = fileExists.when(
+        data: (exists) {
+          if (exists) {
+            return CircleAvatar(
+              radius: radius,
+              backgroundImage: FileImage(File(resolvedPath)),
+            );
+          }
+          return _buildFallbackAvatar();
+        },
+        loading: () => _buildFallbackAvatar(),
+        error: (_, _) => _buildFallbackAvatar(),
+      );
+    } else {
+      avatar = _buildFallbackAvatar();
+    }
+
+    if (onTap != null) {
+      return GestureDetector(onTap: onTap, child: avatar);
+    }
+
+    return avatar;
+  }
+
+  static final RegExp _letterOrDigit = RegExp(r'[\p{L}\p{N}]', unicode: true);
+
+  /// The first letter of [title] for an avatar with no photo, by grapheme so
+  /// emoji aren't split. Leading emoji are skipped if a letter follows.
+  @visibleForTesting
+  static String initialOf(String title) {
+    final graphemes = title.trim().characters;
+    for (final grapheme in graphemes) {
+      if (_letterOrDigit.hasMatch(grapheme)) return grapheme.toUpperCase();
+    }
+    return graphemes.isEmpty ? '?' : graphemes.first;
+  }
+
+  Widget _buildFallbackAvatar() {
+    final bgColor = avatarColorHex != null
+        ? _parseColor(avatarColorHex!)
+        : AppColors.accent;
+    final initial = initialOf(title);
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: bgColor,
+      child: Text(
+        initial,
+        style: AppTypography.displayName(color: Colors.white),
+      ),
+    );
+  }
+
+  Color _parseColor(String hex) {
+    final hexCode = hex.replaceAll('#', '');
+    return Color(int.parse('FF$hexCode', radix: 16));
+  }
+}

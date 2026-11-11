@@ -1,0 +1,102 @@
+name: gramx
+description: "A Telegram client for channels, laid out as a timeline."
+publish_to: 'none'
+version: 1.1.0+3
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Localized strings and text direction for the framework's own widgets.
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^3.3.2
+
+  # TDLib wrapper
+  handy_tdlib: ^2.3.9
+
+
+  # Navigation
+  go_router: ^17.2.3
+
+  # Models
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+
+  # Database
+  drift: ^2.34.1
+  drift_flutter: ^0.3.0
+
+  # Security
+  flutter_secure_storage: ^9.2.4
+
+  # UI
+  google_fonts: ^6.2.1
+  shimmer: ^3.0.0
+  qr_flutter: ^4.1.0
+  video_player: ^2.9.2
+
+  # Utilities
+  intl: ^0.20.2
+  path_provider: ^2.1.5
+  path: ^1.9.1
+  url_launcher: ^6.3.2
+  country_picker: ^2.0.28
+  visibility_detector: ^0.4.0+2
+
+  # Tells TDLib about network changes through `setNetworkType`.
+  connectivity_plus: ^6.1.0
+
+  # Deep links, both at launch and while the app is running.
+  app_links: ^6.3.2
+
+  # Draws notifications; TDLib decides what to notify.
+  flutter_local_notifications: ^18.0.1
+  lottie: ^3.5.1
+  open_filex: ^4.7.0
+
+  # Picking a photo or video from the gallery to attach to a post.
+  image_picker: ^1.1.2
+
+  # Guest mode only: fetching and parsing t.me/s/<channel> preview pages.
+  http: ^1.2.2
+  html: ^0.15.5
+  # Attaching other files via the system picker; needs no storage permission.
+  file_picker: ^11.0.3
+
+  # Voice messages, as Opus in OGG so Telegram shows a playable waveform.
+  record: ^7.1.1
+
+  # One position fix for sending a location, never in the background.
+  geolocator: ^14.0.2
+
+  # Recording round video messages, the only use of the camera.
+  camera: ^0.12.0+2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Code generation
+  build_runner: ^2.4.14
+  freezed: ^3.2.5
+  json_serializable: ^6.9.4
+  drift_dev: ^2.27.0
+
+
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # Brand artwork; the launcher icons live under android/app/src/main/res.
+    - assets/brand/
+    # Shown on the licenses screen.
+    - LICENSE
+    - NOTICE

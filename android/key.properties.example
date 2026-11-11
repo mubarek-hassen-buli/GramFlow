@@ -1,0 +1,6 @@
+# Release signing. Copy this file to android/key.properties and fill it in.
+# Back up both it and the keystore: only the same key can update an install.
+storeFile=/absolute/path/to/upload-keystore.jks
+storePassword=
+keyAlias=upload
+keyPassword=

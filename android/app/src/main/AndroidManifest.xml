@@ -1,0 +1,133 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Talking to Telegram. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Notifications. On Android 13+ it is requested from Settings. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Added by video_player's ExoPlayer but unused: no wake mode is set. -->
+    <uses-permission
+        android:name="android.permission.WAKE_LOCK"
+        tools:node="remove"/>
+
+    <!-- Voice and round video messages. Requested when recording starts. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <!-- Recording round video messages, the only use of the camera. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- Sending a location. Approximate location is enough, and only one fix
+         is taken, never in the background. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <!-- The camera is optional, so devices without one can still install. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false"/>
+
+    <application
+        android:label="GramFlow"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <!-- Shown while the Flutter UI starts, then kept as the window
+                 background behind it. -->
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <!-- t.me links. No autoVerify: t.me hosts no assetlinks.json for
+                 this app, so verification would fail and disable these links. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="t.me"/>
+                <data android:scheme="http" android:host="t.me"/>
+                <data android:scheme="https" android:host="telegram.me"/>
+                <data android:scheme="http" android:host="telegram.me"/>
+                <data android:scheme="https" android:host="telegram.dog"/>
+                <data android:scheme="http" android:host="telegram.dog"/>
+            </intent-filter>
+
+            <!-- tg:// links. Kept apart from the https filter, since one filter
+                 with both would also match https links that have no host. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="tg"/>
+            </intent-filter>
+
+            <!-- Off: app_links handles incoming links. Otherwise Flutter also
+                 pushes the raw URI into go_router, which has no route for it. -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="false" />
+
+            <!-- Shared text or links open the composer. Text only, since media
+                 comes from the gallery picker. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity>
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+    <!-- Lets the Flutter engine's ProcessTextPlugin find text-processing
+         activities under Android package visibility. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Android 11+ hides other apps unless declared here; without these,
+             url_launcher's canLaunchUrl returns false for ordinary links. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="tg"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="mailto"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL"/>
+            <data android:scheme="tel"/>
+        </intent>
+        <!-- Lets open_filex find a viewer for any downloaded file type, which
+             Android 11+ package visibility would otherwise hide. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:mimeType="*/*"/>
+        </intent>
+    </queries>
+</manifest>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The window behind the app while Flutter starts, and the whole launch
+     screen on Android 11 and below. Black in both system themes, to match the
+     app's default dark look. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/black" />
+</layer-list>

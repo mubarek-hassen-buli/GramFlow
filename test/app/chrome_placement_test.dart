@@ -1,0 +1,116 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:gramx/app/widgets/sliding_chrome.dart';
+import 'package:gramx/core/widgets/loading_skeleton.dart';
+
+/// Anything that should leave with the header must be part of the header;
+/// content at a fixed offset in the body leaves an empty band behind.
+void main() {
+  /// Drives the chrome all the way off, the way scrolling down does.
+  void retireChrome(WidgetTester tester) {
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ChromeScaffold)),
+    );
+    container
+        .read(chromeOffsetProvider.notifier)
+        .onScroll(delta: 400, extent: 100, pixels: 400);
+  }
+
+  group('a strip that belongs to the header leaves with it', () {
+    Widget harness() => ProviderScope(
+      child: MaterialApp(
+        home: ChromeScaffold(
+          header: const ChromeHeaderRow(title: 'Messages'),
+          headerBottomHeight: 56,
+          headerBottom: const SizedBox(height: 56, child: Text('search')),
+          body: (context, top, bottom) => ListView.builder(
+            padding: EdgeInsets.only(top: top, bottom: bottom),
+            itemCount: 40,
+            itemBuilder: (_, i) => SizedBox(height: 60, child: Text('row $i')),
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('starts on screen, above the first row', (tester) async {
+      await tester.pumpWidget(harness());
+
+      expect(find.text('search'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('row 0')).dy,
+        greaterThanOrEqualTo(tester.getBottomLeft(find.text('search')).dy),
+      );
+    });
+
+    testWidgets('travels off with the title row rather than staying put', (
+      tester,
+    ) async {
+      await tester.pumpWidget(harness());
+      final before = tester.getTopLeft(find.text('search')).dy;
+
+      retireChrome(tester);
+      await tester.pumpAndSettle();
+
+      final after = tester.getTopLeft(find.text('search')).dy;
+      expect(after, lessThan(before));
+      // Fully off the top of the screen.
+      expect(after, lessThan(0));
+    });
+  });
+
+  group('the first-load skeleton keeps the header', () {
+    testWidgets('draws the real header over a shimmering body', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: ChromeScaffold(
+              observeScroll: false,
+              headerBottomHeight: 46,
+              header: const ChromeHeaderRow(
+                title: 'GramFlow',
+                centerTitle: true,
+              ),
+              headerBottom: const FolderTabsSkeleton(),
+              body: (context, top, bottom) => FeedSkeleton(
+                padding: EdgeInsets.only(top: top, bottom: bottom),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Only the account's folders are a placeholder at first.
+      expect(find.text('GramFlow'), findsOneWidget);
+      expect(find.byType(FolderTabsSkeleton), findsOneWidget);
+      expect(find.byType(PostSkeleton), findsWidgets);
+    });
+
+    testWidgets('and the first card starts below it', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: ChromeScaffold(
+              observeScroll: false,
+              headerBottomHeight: 46,
+              header: const ChromeHeaderRow(
+                title: 'GramFlow',
+                centerTitle: true,
+              ),
+              headerBottom: const FolderTabsSkeleton(),
+              body: (context, top, bottom) => FeedSkeleton(
+                padding: EdgeInsets.only(top: top, bottom: bottom),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        tester.getTopLeft(find.byType(PostSkeleton).first).dy,
+        greaterThanOrEqualTo(tester.getBottomLeft(find.text('GramFlow')).dy),
+      );
+    });
+  });
+}
