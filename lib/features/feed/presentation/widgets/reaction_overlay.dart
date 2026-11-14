@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramx/app/theme/app_colors.dart';
+import 'package:gramx/core/l10n/app_strings.dart';
 import 'package:gramx/features/feed/data/feed_repository.dart';
+import 'package:gramx/infrastructure/telegram/available_reactions_resolver.dart';
 
 class ReactionOverlay extends ConsumerStatefulWidget {
   final int chatId;
+  final int messageId;
   final ValueChanged<String> onEmojiSelected;
   final Widget child;
 
   const ReactionOverlay({
     super.key,
     required this.chatId,
+    this.messageId = 0,
     required this.onEmojiSelected,
     required this.child,
   });
@@ -105,15 +109,44 @@ class _ReactionOverlayState extends ConsumerState<ReactionOverlay> {
     Overlay.of(context).insert(_overlayEntry!);
 
     if (_availableReactions == null) {
-      final emojis = await ref
+      final result = await ref
           .read(feedRepositoryProvider)
-          .getAvailableReactions(widget.chatId);
-      if (mounted) {
-        setState(() {
-          _availableReactions = emojis;
-          _isLoading = false;
-        });
-        _overlayEntry?.markNeedsBuild();
+          .getAvailableReactions(widget.chatId, messageId: widget.messageId);
+      if (!mounted) return;
+      switch (result) {
+        case AvailableReactionsAllowed(:final emojis):
+          setState(() {
+            _availableReactions = emojis;
+            _isLoading = false;
+          });
+          _overlayEntry?.markNeedsBuild();
+        case AvailableReactionsOff():
+          _hideOverlay();
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(this.context).showSnackBar(
+            const SnackBar(
+              content: Text(AppStrings.reactionsOff),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        case AvailableReactionsCustomOnly():
+          _hideOverlay();
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(this.context).showSnackBar(
+            const SnackBar(
+              content: Text(AppStrings.reactionsCustomOnly),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        case AvailableReactionsFailed():
+          _hideOverlay();
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(this.context).showSnackBar(
+            const SnackBar(
+              content: Text(AppStrings.reactionFailed),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
       }
     } else {
       setState(() {
@@ -136,6 +169,7 @@ class _ReactionOverlayState extends ConsumerState<ReactionOverlay> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onLongPress: () => _showOverlay(context),
       child: widget.child,
     );

@@ -284,6 +284,8 @@ abstract class AppStrings {
   static const reactionFailed = "Couldn't react. Try again.";
   static const commentsLoadFailed = "Couldn't load the comments.";
   static const reactionsOff = 'Reactions are turned off here.';
+  static const reactionsCustomOnly =
+      'Only Premium or custom reactions are allowed here.';
   static const similarChannelsTitle = 'Similar channels';
   static String similarChannelsLabel(int count) =>
       count == 1 ? 'similar channel' : 'similar channels';
@@ -682,6 +684,7 @@ abstract class AppStrings {
 
   // ── Onboarding & auth ──────────────────────────────────────────────────────
   static const authPressBackAgain = pressBackAgainToExit;
+  static const authSessionEnded = 'Telegram ended this session.';
   static const authUsePhoneInstead = 'Use a phone number instead';
   static const authCountrySearchLabel = 'Search Country';
   static const authCountrySearchHint = 'Start typing country name or code...';

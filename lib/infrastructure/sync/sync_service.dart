@@ -98,7 +98,7 @@ class SyncService {
 
   Stream<LivePostUpdate> get livePostUpdates => _liveUpdateController.stream;
 
-  final Completer<void> _authReady = Completer<void>();
+  Completer<void> _authReady = Completer<void>();
 
   /// Whether photos may be prefetched as messages arrive. A function so a
   /// settings change applies without rebuilding the service.
@@ -126,6 +126,9 @@ class SyncService {
   void stopListening() {
     _updateSub?.cancel();
     _updateSub = null;
+    if (_authReady.isCompleted) {
+      _authReady = Completer<void>();
+    }
   }
 
   /// Queues a background file download in TDLib.

@@ -10,12 +10,12 @@ import 'package:gramx/features/compose/data/compose_repository.dart';
 import 'package:gramx/features/compose/domain/compose_attachment.dart';
 import 'package:gramx/features/compose/domain/compose_remote_media.dart';
 import 'package:gramx/features/feed/domain/post.dart';
-import 'package:gramx/features/feed/domain/standard_reactions.dart';
 import 'package:gramx/features/feed/domain/post_sender.dart';
 import 'package:gramx/features/feed/domain/seen_posts.dart';
 import 'package:gramx/infrastructure/database/database.dart';
 import 'package:gramx/infrastructure/database/database_provider.dart';
 import 'package:gramx/infrastructure/sync/sync_service.dart';
+import 'package:gramx/infrastructure/telegram/available_reactions_resolver.dart';
 import 'package:gramx/infrastructure/telegram/chat_cache.dart';
 import 'package:gramx/infrastructure/telegram/message_content_support.dart';
 import 'package:gramx/infrastructure/telegram/tdlib_mappers.dart';
@@ -1451,24 +1451,24 @@ class FeedRepository {
     }
   }
 
-  /// The reactions a chat allows, or none if it has them turned off.
-  Future<List<String>> getAvailableReactions(int chatId) async {
-    final chatObj = await _tdlib.sendRequest(td.GetChat(chatId: chatId));
-    if (chatObj is td.Chat) {
-      final available = chatObj.availableReactions;
-      if (available is td.ChatAvailableReactionsSome) {
-        final emojis = <String>[];
-        for (final r in available.reactions) {
-          if (r is td.ReactionTypeEmoji) {
-            emojis.add(r.emoji);
-          }
-        }
-        return emojis;
-      }
-    }
-    // Every reaction is allowed. Keys as TDLib spells them: the heart has no
-    // U+FE0F.
-    return standardReactions;
+  /// Supergroup IDs whose `SupergroupFullInfo` has already been fetched to
+  /// hydrate reaction settings during this session.
+  final Set<int> _hydratedReactionSupergroups = {};
+
+  /// The reactions offered for a specific message, using the shared per-message
+  /// lookup across Feed and Messages.
+  Future<AvailableReactionsResult> getAvailableReactions(
+    int chatId, {
+    required int messageId,
+    int rowSize = defaultReactionRowSize,
+  }) {
+    return resolveMessageAvailableReactions(
+      _tdlib,
+      chatId: chatId,
+      messageId: messageId,
+      rowSize: rowSize,
+      hydratedSupergroups: _hydratedReactionSupergroups,
+    );
   }
 
   /// Fetches a channel post's comments.

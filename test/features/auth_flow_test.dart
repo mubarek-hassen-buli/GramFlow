@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gramx/core/l10n/app_strings.dart';
 import 'package:gramx/features/auth/presentation/auth_providers.dart';
 import 'package:gramx/features/auth/presentation/auth_state_rules.dart';
 import 'package:handy_tdlib/api.dart' as td;
@@ -97,6 +98,40 @@ void main() {
       expect(transition.state!.step, AuthStep.loginMethodSelection);
       expect(transition.stayAtChooser, isFalse);
     });
+
+    test(
+      'wait-for-number preserves a forced-logout notice on the method chooser',
+      () {
+        final transition = resolveAuthState(
+          current: const AuthState(
+            step: AuthStep.loginMethodSelection,
+            errorMessage: AppStrings.authSessionEnded,
+          ),
+          tdState: const td.AuthorizationStateWaitPhoneNumber(),
+          stayAtChooser: false,
+        );
+
+        expect(transition.state!.step, AuthStep.loginMethodSelection);
+        expect(transition.state!.errorMessage, AppStrings.authSessionEnded);
+      },
+    );
+
+    test(
+      'wait-for-number clears stale errors when arriving from another step',
+      () {
+        final transition = resolveAuthState(
+          current: const AuthState(
+            step: AuthStep.waitPhoneNumber,
+            errorMessage: 'PHONE_NUMBER_INVALID',
+          ),
+          tdState: const td.AuthorizationStateWaitPhoneNumber(),
+          stayAtChooser: false,
+        );
+
+        expect(transition.state!.step, AuthStep.loginMethodSelection);
+        expect(transition.state!.errorMessage, isNull);
+      },
+    );
   });
 
   group('shouldRequestQrCode', () {

@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gramx/app/account_reset.dart';
+import 'package:gramx/core/l10n/app_strings.dart';
 import 'package:gramx/features/search/data/recent_searches.dart';
 import 'package:gramx/core/diagnostics/startup_trace.dart';
 import 'package:gramx/features/auth/presentation/auth_state_rules.dart';
@@ -170,6 +171,17 @@ class AuthController extends Notifier<AuthState> {
   /// Reset once a healthy state arrives, so a later close gets its own retry.
   bool _restartedAfterClose = false;
 
+  /// Whether the user started a normal sign-out via [logout].
+  bool _loggingOut = false;
+
+  /// Whether TDLib announced `AuthorizationStateLoggingOut` without the user
+  /// asking to sign out (i.e. Telegram revoked the session).
+  bool _endedByTelegram = false;
+
+  /// In-flight local session cleanup, shared if both `LoggingOut` and `Closed`
+  /// arrive back-to-back.
+  Future<void>? _clearingSession;
+
   /// Whether TDLib is holding a QR code open. TDLib refuses QR and phone
   /// requests in that state, so leaving it takes a client restart.
   bool get _isShowingQr =>
@@ -202,19 +214,58 @@ class AuthController extends Notifier<AuthState> {
     if (tdState is td.AuthorizationStateReady) {
       _stayAtChooser = false;
       _restartedAfterClose = false;
+      _loggingOut = false;
+      _endedByTelegram = false;
       _handleAuthReady();
       return;
     }
     if (tdState is td.AuthorizationStateWaitPhoneNumber) {
       _restartedAfterClose = false;
     }
+    if (tdState is td.AuthorizationStateLoggingOut) {
+      if (!_loggingOut && !_resetting) {
+        _endedByTelegram = true;
+        unawaited(_clearLocalSession());
+      }
+      return;
+    }
     if (tdState is td.AuthorizationStateClosed) {
       // A reset closes the client on purpose and starts its own.
       if (_resetting) return;
       _stayAtChooser = false;
 
-      // Expected after a log out: restart once, which reopens at sign-in.
-      // A second close in a row is an error.
+      final wasUserLogout = _loggingOut;
+      final alreadyClearingFromLoggingOut = _endedByTelegram;
+      final wasForcedLogout =
+          !wasUserLogout &&
+          (_hadSession ||
+              alreadyClearingFromLoggingOut ||
+              state.step == AuthStep.authenticated);
+      _loggingOut = false;
+      _endedByTelegram = false;
+
+      if (wasForcedLogout) {
+        if (!alreadyClearingFromLoggingOut) {
+          unawaited(_clearLocalSession());
+        }
+        _restartedAfterClose = true;
+        state = const AuthState(
+          step: AuthStep.loginMethodSelection,
+          errorMessage: AppStrings.authSessionEnded,
+        );
+        _tdlib.restartClient();
+        return;
+      }
+
+      if (wasUserLogout) {
+        _restartedAfterClose = true;
+        state = const AuthState(step: AuthStep.loginMethodSelection);
+        _tdlib.restartClient();
+        return;
+      }
+
+      // Cold-start close before any session: restart once, which reopens at
+      // sign-in. A second close in a row is an error.
       if (!_restartedAfterClose) {
         _restartedAfterClose = true;
         state = const AuthState(
@@ -521,22 +572,39 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
-  /// Signs out locally first and then tells Telegram, so a slow or failed
-  /// `LogOut` request can't leave the app stuck half signed in.
-  Future<void> logout() async {
-    state = const AuthState(
-      step: AuthStep.loading,
-      statusMessage: 'Logging out…',
-    );
+  /// Clears local per-account state when signing out or when Telegram ends the
+  /// session from its side. Coalesced if both `LoggingOut` and `Closed` arrive
+  /// back-to-back.
+  Future<void> _clearLocalSession() =>
+      _clearingSession ??= _performClearLocalSession().whenComplete(() {
+        _clearingSession = null;
+      });
+
+  Future<void> _performClearLocalSession() async {
+    _hadSession = false;
+    ref.read(syncServiceProvider).stopListening();
 
     final db = ref.read(databaseProvider);
     await db.delete(db.bookmarkEntries).go();
     await db.delete(db.accounts).go();
 
-    // Chats, seen posts and recent searches are per account.
+    // Chats, seen posts, recent searches and per-account providers.
     ref.read(chatCacheProvider).clear();
     await ref.read(seenPostsProvider.notifier).clear();
     await ref.read(recentQueriesProvider.notifier).clear();
+    forgetPreviousAccount(ref);
+  }
+
+  /// Signs out locally first and then tells Telegram, so a slow or failed
+  /// `LogOut` request can't leave the app stuck half signed in.
+  Future<void> logout() async {
+    _loggingOut = true;
+    state = const AuthState(
+      step: AuthStep.loading,
+      statusMessage: 'Logging out…',
+    );
+
+    await _clearLocalSession();
 
     // The step moves before the request, so the router can act on it even if
     // the request never comes back.

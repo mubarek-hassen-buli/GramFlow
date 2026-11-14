@@ -84,7 +84,31 @@ class TdlibService {
 
   td.AuthorizationState? _currentAuthState;
   String _lastStatusMessage = 'Initializing TDLib...';
-  final Completer<void> _tdlibReadyCompleter = Completer<void>();
+  Completer<void> _tdlibReadyCompleter = Completer<void>();
+
+  /// Whether the parameter-ready gate has been satisfied for the current
+  /// client generation.
+  @visibleForTesting
+  bool get isReadyGateCompleted => _tdlibReadyCompleter.isCompleted;
+
+  /// Number of in-flight requests currently awaiting a TDLib response.
+  @visibleForTesting
+  int get pendingRequestCount => _pendingRequests.length;
+
+  /// Registers a synthetic pending request for testing restart cleanup.
+  @visibleForTesting
+  void registerPendingRequestForTest(
+    String extraId,
+    Completer<td.TdObject> completer,
+  ) {
+    _pendingRequests[extraId] = completer;
+  }
+
+  /// Marks the ready gate completed for unit testing restart state transitions.
+  @visibleForTesting
+  void markReadyForTest() {
+    _markTdlibReady();
+  }
 
   /// One flood-wait deadline for the whole client. Per-call retries would all
   /// fire together when the limit lifts and trip it again.
@@ -330,8 +354,12 @@ class TdlibService {
   Duration _pollInterval = _activePollInterval;
 
   /// Starts receiving on a background isolate, or polls here if that fails.
-  /// Only one runs, since `td_receive` must not be called concurrently.
+  /// Kept running for the lifetime of the service so `td_receive` is never
+  /// called concurrently across client restarts.
   Future<void> _startReceiving() async {
+    if ((_receiver != null && _receiver!.isRunning) || _pollTimer != null) {
+      return;
+    }
     _receiver = TdlibReceiver(onPayload: _handlePayload);
     if (await _receiver!.start()) return;
 
@@ -630,17 +658,39 @@ class TdlibService {
     }
   }
 
-  /// Creates a new client on the same database after TDLib closed the old one,
-  /// as it does after a log out. The new client starts at `WaitPhoneNumber`.
-  Future<void> restartClient() async {
-    _updateStatus('Reconnecting to Telegram...');
-    _pollTimer?.cancel();
-    _pollTimer = null;
-    await _receiver?.stop();
-    _receiver = null;
+  /// Resets client-scoped state before opening a new TDLib client underneath
+  /// the existing receive task.
+  ///
+  /// The receive loop (`_receiver` or `_pollTimer`) is intentionally left
+  /// running: TDLib's `td_receive` is process-global across client IDs and
+  /// must never be called concurrently by a dying isolate and a newly spawned
+  /// one.
+  @visibleForTesting
+  void resetClientStateForRestart() {
     _clientId = null;
     _initializeMemoizer = null;
     _currentAuthState = null;
+    _isClosing = false;
+    _isOnline = null;
+    if (_tdlibReadyCompleter.isCompleted) {
+      _tdlibReadyCompleter = Completer<void>();
+    }
+    final pending = List<Completer<td.TdObject>>.of(_pendingRequests.values);
+    _pendingRequests.clear();
+    for (final completer in pending) {
+      if (!completer.isCompleted) {
+        completer.completeError(
+          const TdlibRequestException(400, 'Telegram client restarted.'),
+        );
+      }
+    }
+  }
+
+  /// Creates a new client on the same database after TDLib closed the old one,
+  /// as it does after a log out, while keeping the single receive task running.
+  Future<void> restartClient() async {
+    _updateStatus('Reconnecting to Telegram...');
+    resetClientStateForRestart();
     await initialize();
   }
 
@@ -648,16 +698,11 @@ class TdlibService {
   Future<void> resetSession() async {
     try {
       _updateStatus('Resetting TDLib local data...');
-      // The old client holds the database open. It used to be left running
-      // while its files were deleted and a new client opened them.
+      // The old client holds the database open. Wait for it to close while
+      // keeping the single receive task running, then open the replacement
+      // client underneath it.
       await _closeClient();
-      _pollTimer?.cancel();
-      _pollTimer = null;
-      await _receiver?.stop();
-      _receiver = null;
-      _clientId = null;
-      _initializeMemoizer = null;
-      _currentAuthState = null;
+      resetClientStateForRestart();
 
       final appDir = await getApplicationDocumentsDirectory();
       final databaseDir = Directory('${appDir.path}/tdlib');

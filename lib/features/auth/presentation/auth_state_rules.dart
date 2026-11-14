@@ -22,9 +22,15 @@ AuthTransition resolveAuthState({
   required bool stayAtChooser,
 }) {
   if (tdState is td.AuthorizationStateWaitPhoneNumber) {
-    // A fresh attempt is possible, so the hold is released.
-    return const AuthTransition(
-      state: AuthState(step: AuthStep.loginMethodSelection),
+    // A fresh attempt is possible, so the hold is released. Keep any notice
+    // already shown on the chooser (such as a session ended by Telegram).
+    return AuthTransition(
+      state: AuthState(
+        step: AuthStep.loginMethodSelection,
+        errorMessage: current.step == AuthStep.loginMethodSelection
+            ? current.errorMessage
+            : null,
+      ),
       stayAtChooser: false,
     );
   }

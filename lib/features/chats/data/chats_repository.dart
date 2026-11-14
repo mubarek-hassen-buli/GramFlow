@@ -14,6 +14,7 @@ import 'package:gramx/features/compose/data/compose_repository.dart';
 import 'package:gramx/features/compose/domain/compose_attachment.dart';
 import 'package:gramx/features/compose/domain/compose_remote_media.dart';
 import 'package:gramx/features/compose/domain/poll_draft.dart';
+import 'package:gramx/infrastructure/telegram/available_reactions_resolver.dart';
 import 'package:gramx/infrastructure/telegram/chat_cache.dart';
 import 'package:gramx/infrastructure/telegram/tdlib_service.dart';
 
@@ -1080,40 +1081,20 @@ class ChatsRepository {
     required int messageId,
     int rowSize = reactionRowSize,
   }) async {
-    try {
-      final res = await _tdlib.sendRequest(
-        td.GetMessageAvailableReactions(
-          chatId: chatId,
-          messageId: messageId,
-          rowSize: rowSize,
-        ),
-      );
-      if (res is! td.AvailableReactions) return const [];
-
-      final emojis = <String>[];
-      // Top, then recent, then popular, as Telegram orders them.
-      for (final group in [
-        res.topReactions,
-        res.recentReactions,
-        res.popularReactions,
-      ]) {
-        for (final reaction in group) {
-          if (reaction.needsPremium) continue;
-          final type = reaction.type;
-          if (type is! td.ReactionTypeEmoji) continue;
-          if (emojis.contains(type.emoji)) continue;
-          emojis.add(type.emoji);
-        }
-      }
-      return emojis;
-    } catch (e) {
-      debugPrint('[ChatsRepo] reactions for $chatId/$messageId failed: $e');
-      return const [];
-    }
+    final result = await resolveMessageAvailableReactions(
+      _tdlib,
+      chatId: chatId,
+      messageId: messageId,
+      rowSize: rowSize,
+    );
+    return switch (result) {
+      AvailableReactionsAllowed(:final emojis) => emojis,
+      _ => const [],
+    };
   }
 
   /// How many reactions the picker shows in its row; Telegram orders around it.
-  static const int reactionRowSize = 8;
+  static const int reactionRowSize = defaultReactionRowSize;
 
   /// Tells the other side this account is typing, or has stopped. Telegram
   /// expects it about every five seconds while typing; the caller throttles.

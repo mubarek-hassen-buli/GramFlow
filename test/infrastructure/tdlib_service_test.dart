@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gramx/infrastructure/telegram/tdlib_service.dart';
 import 'package:handy_tdlib/api.dart' as td;
@@ -151,5 +154,50 @@ void main() {
       expect(TdlibService.maxInlineFloodWait.inSeconds, lessThanOrEqualTo(60));
       expect(TdlibService.maxInlineFloodWait.inSeconds, greaterThan(0));
     });
+  });
+
+  group('TdlibService.resetClientStateForRestart', () {
+    test(
+      'resets the ready gate and fails in-flight requests without stopping the service',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final service = container.read(tdlibServiceProvider);
+
+        service.markReadyForTest();
+        expect(service.isReadyGateCompleted, isTrue);
+
+        final inFlightA = Completer<td.TdObject>();
+        final inFlightB = Completer<td.TdObject>();
+        service.registerPendingRequestForTest('req-1', inFlightA);
+        service.registerPendingRequestForTest('req-2', inFlightB);
+        expect(service.pendingRequestCount, 2);
+
+        final futureA = expectLater(
+          inFlightA.future,
+          throwsA(
+            isA<TdlibRequestException>()
+                .having((e) => e.code, 'code', 400)
+                .having(
+                  (e) => e.message,
+                  'message',
+                  contains('Telegram client restarted.'),
+                ),
+          ),
+        );
+        final futureB = expectLater(
+          inFlightB.future,
+          throwsA(isA<TdlibRequestException>()),
+        );
+
+        service.resetClientStateForRestart();
+
+        await futureA;
+        await futureB;
+        expect(service.isReadyGateCompleted, isFalse);
+        expect(service.pendingRequestCount, 0);
+        expect(service.currentAuthState, isNull);
+      },
+    );
   });
 }

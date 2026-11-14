@@ -11,6 +11,7 @@ import 'package:gramx/core/time/time_utils.dart';
 import 'package:gramx/features/feed/data/feed_repository.dart';
 import 'package:gramx/features/feed/domain/post.dart';
 import 'package:gramx/features/feed/presentation/widgets/reaction_picker_overlay.dart';
+import 'package:gramx/infrastructure/telegram/available_reactions_resolver.dart';
 
 /// The reaction button for posts and comments. Tapping with no reaction
 /// opens the picker, tapping your own reaction removes it, and a long press
@@ -61,29 +62,44 @@ class _ReactionControlState extends ConsumerState<ReactionControl> {
     if (renderBox == null) return;
 
     final rect = renderBox.localToGlobal(Offset.zero) & renderBox.size;
-    final availableEmojis = await ref
+    final result = await ref
         .read(feedRepositoryProvider)
-        .getAvailableReactions(post.chatId);
+        .getAvailableReactions(post.chatId, messageId: post.messageId);
     if (!mounted) return;
-    if (availableEmojis.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStrings.reactionsOff),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
 
-    ReactionPickerOverlay.show(
-      context: context,
-      targetRect: rect,
-      availableEmojis: availableEmojis,
-      selectedEmoji: post.chosenReactions.isNotEmpty
-          ? post.chosenReactions.first
-          : null,
-      onEmojiSelected: widget.onSelectReaction,
-    );
+    switch (result) {
+      case AvailableReactionsAllowed(:final emojis):
+        ReactionPickerOverlay.show(
+          context: context,
+          targetRect: rect,
+          availableEmojis: emojis,
+          selectedEmoji: post.chosenReactions.isNotEmpty
+              ? post.chosenReactions.first
+              : null,
+          onEmojiSelected: widget.onSelectReaction,
+        );
+      case AvailableReactionsOff():
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(AppStrings.reactionsOff),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      case AvailableReactionsCustomOnly():
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(AppStrings.reactionsCustomOnly),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      case AvailableReactionsFailed():
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(AppStrings.reactionFailed),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    }
   }
 
   void _handleTap() {
